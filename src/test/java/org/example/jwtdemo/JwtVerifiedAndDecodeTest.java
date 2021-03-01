@@ -72,6 +72,17 @@ public class JwtVerifiedAndDecodeTest {
     }
 
     @Test
+    public void simpleDecode() throws JoseException {
+        String payload = "ZXlKNmFYQWlPaUpFUlVZaUxDSmhiR2NpT2lKa2FYSWlMQ0psYm1NaU9pSkJNVEk0UTBKRExVaFRNalUySWl3aVkzUjVJam9pU2xkVUlpd2lkSGx3SWpvaVNsZFVJbjAuLko2WEhTRGs2d0R1V0d6MXE3a1pBbkEuN3laU0ZueDVYTEpsSmpOV3RiR2RiUEhvRXNMOFlwbU9uVmRTWko3VXp1VHJaVVZzZFZvSWlsam9WRGpKUThBVFJIUVpSYTVUc2RnS3lqNGgyeVZiOGtFWE1hWFpQQ0psdjZCUDN4bW44aUFlNzZvS05qa09SZVBienYtbUVwX3AydU5VT0lzc1J4TWFYZkVlRkh1dEE4WlRhclIwRmZWUC1vczB6LUF5dlpOdWpac0FPUEFqcjV0VDlKNDAzSzRRckJwU3BRaFd5TkI3QUp0U3lVcUE1NkhtZUdDOUdBREtRMzl1WTNTVHVZLUU0Sm1uQXd6MVMwdExEWlpVX3JXTURCUVpqSlQ4V2swSUY1ejdRTXVPMncuNDZYOEJZWGt6elQ4NThyZGp4UGtXdw";
+        String basePayload = new String(Base64.decodeBase64(payload), StandardCharsets.UTF_8);
+        System.out.println(basePayload);
+        JsonWebEncryption jwe = new JsonWebEncryption();
+        jwe.setKey(secretKeyEncryptionKey);
+        jwe.setCompactSerialization(basePayload);
+        System.out.println(jwe.getPayload());
+    }
+
+    @Test
     public void encode() throws JoseException {
         String value = "{\"sub\":\"casuser\",\"roles\":[],\"iss\":\"https:\\/\\/cas.example.org:8443\\/cas\",\"nonce\":\"\",\"client_id\":\"clientid\",\"aud\":\"clientid\",\"grant_type\":\"PASSWORD\",\"permissions\":[],\"scope\":[],\"claims\":[],\"scopes\":[],\"state\":\"\",\"exp\":1614354640,\"iat\":1614325840,\"jti\":\"AT-1-U3I-bSR3WaNuBQAiKd4u2PPSp1dM9s5b\"}";
         String encryptionMethodHeaderParameter = "A128CBC-HS256";

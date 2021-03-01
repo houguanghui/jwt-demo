@@ -15,9 +15,12 @@ import org.springframework.core.io.ClassPathResource;
 
 
 import java.io.*;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Map;
 
@@ -107,18 +110,24 @@ public class JwtRSAVerifiedAndDecodeTest {
     }
 
     @Test
-    public void decode() throws JoseException {
-        String encryptionMethodHeaderParameter = "A128CBC-HS256";
-        String value = "eyJ6aXAiOiJERUYiLCJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwiY3R5IjoiSldUIiwidHlwIjoiSldUIn0.G1u6ogp2EuhXrSXaH_7ReqQL-XILIL2wanfEtbchyjdH_AwxZYT7WfZUeLWrnHS_sCxUiODOikHIsOKuvZpfb_7cl1wfibq2pyfn6BbDya7IAqjNfmi3EP0Rj1CsI7hAE4XUkX0gkbp3IMTUsiPj3nQTr8DtcZ3oVGk3lxAnsPofAHMCQupaD9mNy55KfRW6dBawvP1O_jyj910EGnV6I8kw4kygPxChtKI8dVwtKKvXQ4IqjYAgG_5e93q8wCQ73oQgfcKoqn7UNvZtzr2Zyv9cPq3OQOsLYGiRnlm7O8G6o1liuhHZa-yvgsUHnEZ-5DzBeXrpFof6yylGwi2TbQ.HZBp4Q22j5f2lyZApaf6TA.iL5Nzj2HOK4a07IDT2kniAP0G3BAEhhs0oRb2nLrWiusAIo8cglBSiKz1P90HwfMtd77RcemCeLm1A1aLI4e7QWbJCIn2EtBRxHBGVkB9XxCYmPsb4KjBClsQnEei6e34_K51PwdqAWH6oZFNSmX-vmkclB8Csm7RZQQ1Gngwa5BWN8FDKaqLZpERSZ006TmnHJ7UPVSy3Rm0D35quW7vhFJ28kFwJ_Qs1rfvReoROtukFBuzhIkEw1Y0PQ5_kBcbhiE1a5o-UkijnO_SFC68w.Njw3xWZV8MuZQB7YLNu8yA";
-        JsonWebEncryption jwe = new JsonWebEncryption();
-        jwe.setPayload(value);
-        jwe.enableDefaultCompression();
-        jwe.setAlgorithmHeaderValue("RSA-OAEP-256");
-        jwe.setEncryptionMethodHeaderParameter(encryptionMethodHeaderParameter);
-        jwe.setKey(signingKey);
-        jwe.setContentTypeHeaderValue("JWT");
-        jwe.setHeader("typ", "JWT");
-        String encoded = jwe.getCompactSerialization();
-        System.out.println("encodedValue="+encoded);
+    public void decode() throws JoseException, NoSuchAlgorithmException, InvalidKeySpecException {
+        String value = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.ZXlKNmFYQWlPaUpFUlVZaUxDSmhiR2NpT2lKU1UwRXRUMEZGVUMweU5UWWlMQ0psYm1NaU9pSkJNVEk0UTBKRExVaFRNalUySWl3aVkzUjVJam9pU2xkVUlpd2lkSGx3SWpvaVNsZFVJbjAuckg2YUE0d20xX1gxRC1QSHljWkJRdkNpTVZVd3JVcFFJUVF1RWlpS3FTYXhBMmQ4ZEJrNjFFcUJoWE5fek5QX0ViX244TDV1Mzg3NVAxVFN4Qk9aNUwyVzBkVmpQNTFEeU9NNEtRY2RHbXVieDl6LWR6bkdGdXE1c1RlTGZWMklNc0tSaVJaTkNpZzlNY29CdUE2UnIxSFFrVE5fOHM0WU9uNEJPaUJyV0NXem9TWWYwYkxYV2Nqd0ltQlZKUWhrSGlydFYyTjc4azlhYVloUjBYTE1SY3JkM0JTdGRCNW92S2Ryc1JYWkJjeXItRlVmSnJuR0ZPc1IzVTZwZ25kOGV5SjlHMlpRWUU2d05pTXRCM1JVZkpXRzBWX3ZqYWxVSmxpT2RVZ1RVd1MyVkNhLXFuZEIxdm5JbGNoLVEwelppZ1pMbXU2dXh4N25NRnQtV1F1U1ZnLjllTlpLb0thQjRCU2NRYjUwak84cncudWN3V2dnVEdLcmRyeWJwR2pDWlYwTWJzRjF0X05kUEp1T1lFQ3hjN1QtZV8zSFVGamVYS2pEdnNjRjIwSTd2MWM1WDNHY1Z5emNpTEJBZU9xQ2tsR21WUG1pMmlEY1otN2k3UmdoeHBQVmkyN2JNTzR2eHpTem15Qm9PTHI1azJ3am9EVGtzcHRGRGZBVndpUURVTlVETHBWWXJGVnBBM0VuNUZiR2JKZ0czUmVIaGFJZXdWSHV4S0dGa3ZCaUxkMDUzWS1DMlk3MUs0YzNiQWg1WlEzcEJjTGcwVGU4T3ppU29QelI3TjJLTzlsZ2ZpR2RhOU1zWnBzUEFiZjBsRUhMZHJaRHFzSk9EejdnU2Q2cnpEVWcua05FdWtqRUlqT1hQU3RfQlZtQ1ZCQQ.zkQnvz9dxBsh2zj3JOAJqPL2rZerxTtiMk4rR8mZYCy5hRJpBDSNxGP6myjlLRkV4j16Kx9lSwzBX2qrnE53l0DxFdtlDTWcJ3NNre6VSXTtchAcs-bJvtHgLWIDbgZNJsw-tSp-XM3MCH0T2epP6GInsvCROISJL3FbH4SG72hVACoSFYh5oCj1fM640c8CUq1LJ0HnCz7Bdu4fFoVUg1TVAuBBzQM8JZ4UoVAz4tAA2ugbhQGBeVdG7mSXwC3cuAQHGi0rjhWF9CMuNjSwkvgK7KlRa1l7TixPXJbi6y0dR1Sbow9qdcoWk0gJeddl3HS7XSc1w0rgnRu8IXSDTA";
+        RSAPrivateKey privKey = RSAPrivateKey.class.cast(this.signingKey);
+        RSAPublicKeySpec keySpec = new RSAPublicKeySpec(privKey.getModulus(), BigInteger.valueOf(65537));
+        PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(keySpec);
+
+        JsonWebSignature jws = new JsonWebSignature();
+        jws.setCompactSerialization(new String(value.getBytes(StandardCharsets.UTF_8),StandardCharsets.UTF_8));
+        jws.setKey(publicKey);
+        boolean b = jws.verifySignature();
+        if (b){
+            String encodedPayload = jws.getEncodedPayload();
+            System.out.println(encodedPayload);
+            JsonWebEncryption jwe = new JsonWebEncryption();
+            jwe.setKey(signingKey);
+            jwe.setCompactSerialization(new String(Base64.decodeBase64(encodedPayload), StandardCharsets.UTF_8));
+            String payload = jwe.getPayload();
+            System.out.println(payload);
+        }
     }
 }
